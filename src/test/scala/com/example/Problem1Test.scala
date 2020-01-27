@@ -33,4 +33,20 @@ class Problem1Test
     }
   }
 
+  "processLines" should {
+    val processedLines = List("10", "15", "20")
+    val unprocessedLines = List("# ignored", "30-xx")
+
+    "convert all valid lines" in {
+      Problem1.processLines(processedLines).size shouldBe 3
+    }
+    "ignore all invalid lines" in {
+      Problem1.processLines(unprocessedLines).size shouldBe 0
+    }
+    "convert only valid lines in list with valid and invalid lines" in {
+      Problem1.processLines(processedLines ++ unprocessedLines ++ processedLines).size shouldBe 6
+    }
+
+  }
+
 }

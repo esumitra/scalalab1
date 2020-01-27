@@ -15,13 +15,19 @@ case class DataConfig(celsiusdata: String, fahrenheitdata: String)
 
 object Problem1 extends LazyLogging {
 
-  // function to convert celsius to fahrenheit
+  /**
+    * converts celsius to fahrenheit
+    * (a pure function for testability)
+    * @param temp
+    * @return
+    */
   def celsiusToFahrenheit(temp: Double): Double = 32.0 + (temp * 9.0 / 5.0)
 
   /**
     * convert raw string to Double ignoring
     * 1. any lines that start with '#'
     * 2. conversion errors
+    * (a pure function for testability)
     * @param line
     * @return
     */
@@ -34,19 +40,27 @@ object Problem1 extends LazyLogging {
       }.toOption
     }
 
+  /**
+    * processing pipeline (a pure function for testability)
+    * @param lines
+    * @return
+    */
+  def processLines(lines: List[String]): List[Double] =
+    lines
+      .map(stringToTemperature)   // 1. convert strings to Double
+      .flatten                    // 2. ignore unprocessed lines
+      .map(celsiusToFahrenheit)   // 3. convert to fahrenheit
+
   def main(args: Array[String]) = {
     // get file location from config
     val fileConfig = ConfigUtils.loadAppConfig[DataConfig]("com.example.problem1")
     logger.info(s"reading from ${fileConfig.celsiusdata} and writing to ${fileConfig.fahrenheitdata}")
 
     val fahrenheitLines: List[Double] =
-      readFileLines(fileConfig.celsiusdata)                                   // 1. read input file as lines
-      .map(stringToTemperature)                                               // 2. convert strings to Double
-      .flatten                                                                // 3. ignore unprocessed lines
-      .map(celsiusToFahrenheit)                                               // 4. convert to fahrenheit
+      (readFileLines _ andThen processLines)(fileConfig.celsiusdata)
 
-    writeToFile(fileConfig.fahrenheitdata, fahrenheitLines.mkString("\n"))    // 5. write to output file
-    logger.info(s"${fahrenheitLines.size} lines converted")                   // 6. log number of converted lines
+    writeToFile(fileConfig.fahrenheitdata, fahrenheitLines.mkString("\n"))
+    logger.info(s"${fahrenheitLines.size} lines converted")
   }
 
   // read from file
